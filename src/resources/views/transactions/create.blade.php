@@ -14,10 +14,13 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4">Products</h2>
             
             <!-- Search Product -->
-            <div class="mb-4">
+            <div class="mb-4 flex gap-2">
                 <input type="text" id="searchProduct" 
                     placeholder="Search product by name or scan barcode..." 
                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <button type="button" id="scanBtn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                    📷 Scan
+                </button>
             </div>
 
             <!-- Product Grid -->
@@ -78,8 +81,10 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
 <script>
     let cart = [];
+    let html5QrCode = null;
 
     // Search Product
     document.getElementById('searchProduct').addEventListener('input', function(e) {
@@ -96,6 +101,23 @@
     });
 
     // Add to Cart
+    function addProductToCart(product) {
+        const existingIndex = cart.findIndex(item => item.product_id === product.product_id);
+
+        if (existingIndex !== -1) {
+            if (cart[existingIndex].quantity < product.stock) {
+                cart[existingIndex].quantity++;
+            } else {
+                alert('Stock not available!');
+                return;
+            }
+        } else {
+            cart.push(product);
+        }
+
+        updateCart();
+    }
+
     document.querySelectorAll('.product-item').forEach(item => {
         item.addEventListener('click', function() {
             const product = {
@@ -107,20 +129,7 @@
                 quantity: 1
             };
 
-            const existingIndex = cart.findIndex(item => item.product_id === product.product_id);
-            
-            if (existingIndex !== -1) {
-                if (cart[existingIndex].quantity < product.stock) {
-                    cart[existingIndex].quantity++;
-                } else {
-                    alert('Stock not available!');
-                    return;
-                }
-            } else {
-                cart.push(product);
-            }
-
-            updateCart();
+            addProductToCart(product);
         });
     });
 
@@ -241,5 +250,90 @@
             this.textContent = 'Checkout';
         });
     });
+
+    // Barcode scanner
+    const scannerModal = document.createElement('div');
+    scannerModal.id = 'scannerModal';
+    scannerModal.className = 'hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50';
+    scannerModal.innerHTML = `
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Scan Barcode</h3>
+                <button id="closeScanner" class="text-gray-600 hover:text-gray-800 text-2xl">&times;</button>
+            </div>
+            <div id="reader" class="w-full"></div>
+            <div id="scanResult" class="mt-4 text-center text-sm text-gray-600"></div>
+        </div>
+    `;
+    document.body.appendChild(scannerModal);
+
+    const scanBtn = document.getElementById('scanBtn');
+    const closeScannerBtn = scannerModal.querySelector('#closeScanner');
+
+    scanBtn.addEventListener('click', () => {
+        scannerModal.classList.remove('hidden');
+        startScanner();
+    });
+
+    closeScannerBtn.addEventListener('click', () => {
+        stopScanner();
+        scannerModal.classList.add('hidden');
+    });
+
+    scannerModal.addEventListener('click', function(e) {
+        if (e.target === scannerModal) {
+            stopScanner();
+            scannerModal.classList.add('hidden');
+        }
+    });
+
+    function startScanner() {
+        html5QrCode = new Html5Qrcode('reader');
+        const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+        html5QrCode.start(
+            { facingMode: 'environment' },
+            config,
+            (decodedText) => {
+                document.getElementById('scanResult').innerHTML = `<p class="text-green-600">✓ Scanned: ${decodedText}</p>`;
+                fetchProductByCode(decodedText.trim());
+            },
+            () => {}
+        ).catch(err => {
+            document.getElementById('scanResult').innerHTML = '<p class="text-red-600">Error: Cannot access camera</p>';
+            console.error(err);
+        });
+    }
+
+    function stopScanner() {
+        if (html5QrCode) {
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+            }).catch(err => console.error('Stop scanner error:', err));
+        }
+    }
+
+    function fetchProductByCode(code) {
+        fetch(`{{ url('/transactions/product') }}/${code}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const p = data.product;
+                    addProductToCart({
+                        product_id: p.id,
+                        code: p.code,
+                        name: p.name,
+                        price: parseFloat(p.price),
+                        stock: parseInt(p.stock),
+                        quantity: 1
+                    });
+                    stopScanner();
+                    scannerModal.classList.add('hidden');
+                } else {
+                    alert(data.message || 'Product not found');
+                }
+            })
+            .catch(() => alert('Failed to fetch product'));
+    }
 </script>
 @endsection

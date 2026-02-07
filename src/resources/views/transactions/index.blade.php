@@ -40,9 +40,9 @@
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <a href="{{ route('transactions.show', $transaction->id) }}" 
+                    <a href="{{ route('transactions.show', $transaction->invoice_code) }}" 
                         class="text-blue-600 hover:text-blue-900">View</a>
-                    <a href="{{ route('transactions.print', $transaction->id) }}" 
+                    <a href="{{ route('transactions.print', $transaction->invoice_code) }}" 
                         class="text-green-600 hover:text-green-900" target="_blank">Print</a>
                 </td>
             </tr>

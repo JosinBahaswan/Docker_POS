@@ -133,7 +133,7 @@
             <tr>
                 <td class="item-name">
                     <div>{{ $detail->product->name ?? 'Unknown' }}</div>
-                    <div style="font-size: 9px; color: #666;">{{ $detail->prduct_code }}</div>
+                    <div style="font-size: 9px; color: #666;">{{ $detail->product_code }}</div>
                 </td>
                 <td class="text-center">{{ $detail->quantity }}</td>
                 <td class="text-right">{{ number_format($detail->subtotal / $detail->quantity, 0) }}</td>

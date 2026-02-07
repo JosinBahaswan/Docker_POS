@@ -6,7 +6,7 @@
 <div class="mb-6 flex justify-between items-center">
     <h1 class="text-3xl font-bold text-gray-800">Transaction Detail</h1>
     <div class="space-x-2">
-        <a href="{{ route('transactions.print', $transaction->id) }}" 
+        <a href="{{ route('transactions.print', $transaction->invoice_code) }}" 
             class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" target="_blank">
             Print Receipt
         </a>
@@ -65,7 +65,7 @@
                 @foreach($transaction->details as $detail)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {{ $detail->prduct_code }}
+                        {{ $detail->product_code }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {{ $detail->product->name ?? 'Unknown Product' }}

@@ -140,18 +140,6 @@ class ProductController extends Controller
     }
 
     /**
-     * Generate barcode image
-     */
-    public function barcode(Product $product)
-    {
-        $generator = new BarcodeGeneratorPNG();
-        $barcode = $generator->getBarcode($product->code, $generator::TYPE_CODE_128, 3, 50);
-        
-        return response($barcode)
-            ->header('Content-Type', 'image/png');
-    }
-
-    /**
      * Export all products to PDF
      */
     public function exportPdf()

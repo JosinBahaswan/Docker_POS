@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController; 
+use App\Http\Controllers\ReportController;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -11,6 +12,10 @@ use App\Http\Controllers\TransactionController;
 Route::redirect('/', '/categories');
 Route::resource('/categories', CategoryController::class);
 Route::resource('/products', ProductController::class);
+
+Route::get('/products/{product}/barcode', [ProductController::class, 'barcode'])->name('products.barcode');
+Route::get('/products/{product}/label', [ProductController::class, 'printLabel'])->name('products.print-label');
+Route::get('/products-export/pdf', [ProductController::class, 'exportPdf'])->name('products.export-pdf');
 
 Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
 Route::get('/transactions/history', [TransactionController::class, 'index'])->name('transactions.index');
